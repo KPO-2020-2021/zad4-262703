@@ -1,32 +1,4 @@
-#pragma once
-
-#include "size.hh"
-#include "vector.hh"
-#include <iostream>
-#include <cstdlib>
-
-class Matrix {
-
-private:
-    double value[SIZE][SIZE];               // Wartosci macierzy
-
-public:
-    Matrix(double [SIZE][SIZE]);            // Konstruktor klasy
-
-    Matrix();                               // Konstruktor klasy
-
-    Vector operator * (Vector tmp);           // Operator mnożenia przez wektor
-
-    Matrix operator + (Matrix tmp);
-
-    double  &operator () (unsigned int row, unsigned int column);
-    
-    const double &operator () (unsigned int row, unsigned int column) const;
-};
-
-std::istream &operator>>(std::istream &in, Matrix &mat);
-
-std::ostream &operator<<(std::ostream &out, Matrix const &mat);
+#include "matrix.hh"
 
 /******************************************************************************
  |  Konstruktor klasy Matrix.                                                 |
@@ -35,10 +7,11 @@ std::ostream &operator<<(std::ostream &out, Matrix const &mat);
  |  Zwraca:                                                                   |
  |      Macierz wypelnione wartoscia 0.                                       |
  */
-Matrix::Matrix() {
+template<typename TYP, int SIZE>
+Matrix<TYP, SIZE>::Matrix() {
     for (int i = 0; i < SIZE; ++i) {
         for (int j = 0; j < SIZE; ++j) {
-            value[i][j] = 0;
+            Matr[i][j] = 0;
         }
     }
 }
@@ -51,12 +24,20 @@ Matrix::Matrix() {
  |  Zwraca:                                                                   |
  |      Macierz wypelniona wartosciami podanymi w argumencie.                 |
  */
-Matrix::Matrix(double tmp[SIZE][SIZE]) {
+template<typename TYP, int SIZE>
+Matrix<TYP, SIZE>::Matrix(TYP tmp[SIZE][SIZE]) {
     for (int i = 0; i < SIZE; ++i) {
         for (int j = 0; j < SIZE; ++j) {
-            value[i][j] = tmp[i][j];
+            Matr[i][j] = tmp[i][j];
         }
     }
+}
+
+
+template<typename TYP, int SIZE>
+Matrix<TYP, SIZE>::~Matrix()
+{
+
 }
 
 
@@ -68,12 +49,12 @@ Matrix::Matrix(double tmp[SIZE][SIZE]) {
  |  Zwraca:                                                                   |
  |      Iloczyn dwoch skladnikow przekazanych jako wektor.                    |
  */
-
-Vector Matrix::operator * (Vector tmp) {
-    Vector result;
+template<typename TYP, int SIZE>
+Vector3D Matrix<TYP, SIZE>::operator * (Vector3D tmp) {
+    Vector3D result;
     for (int i = 0; i < SIZE; ++i) {
         for (int j = 0; j < SIZE; ++j) {
-            result[i] += value[i][j] * tmp[j];
+            result[i] += Matr[i][j] * tmp[j];
         }
     }
     return result;
@@ -88,7 +69,8 @@ Vector Matrix::operator * (Vector tmp) {
  |  Zwraca:                                                                   |
  |      Wartosc macierzy w danym miejscu tablicy.                             |
  */
-double &Matrix::operator()(unsigned int row, unsigned int column) {
+template<typename TYP, int SIZE>
+TYP &Matrix<TYP, SIZE>::operator()(unsigned int row, unsigned int column) {
 
     if (row >= SIZE) {
         std::cout << "Error: Macierz jest poza zasiegiem"; 
@@ -100,7 +82,7 @@ double &Matrix::operator()(unsigned int row, unsigned int column) {
         exit(0); // lepiej byłoby rzucić wyjątkiem stdexcept
     }
 
-    return value[row][column];
+    return Matr[row][column];
 }
 
 
@@ -112,7 +94,8 @@ double &Matrix::operator()(unsigned int row, unsigned int column) {
  |  Zwraca:                                                                   |
  |      Wartosc macierzy w danym miejscu tablicy jako stala.                  |
  */
-const double &Matrix::operator () (unsigned int row, unsigned int column) const {
+template<typename TYP, int SIZE>
+const TYP &Matrix<TYP, SIZE>::operator () (unsigned int row, unsigned int column) const {
 
     if (row >= SIZE) {
         std::cout << "Error: Macierz jest poza zasiegiem";
@@ -124,7 +107,7 @@ const double &Matrix::operator () (unsigned int row, unsigned int column) const 
         exit(0); // lepiej byłoby rzucić wyjątkiem stdexcept
     }
 
-    return value[row][column];
+    return Matr[row][column];
 }
 
 /******************************************************************************
@@ -135,11 +118,12 @@ const double &Matrix::operator () (unsigned int row, unsigned int column) const 
  |  Zwraca:                                                                   |
  |      Macierz - iloczyn dwóch podanych macierzy.                  |
  */
-Matrix Matrix::operator + (Matrix tmp) {
-    Matrix result;
+template<typename TYP, int SIZE>
+Matrix<TYP, SIZE> Matrix<TYP, SIZE>::operator + (Matrix<TYP,SIZE> tmp) {
+    Matrix<TYP, SIZE> result;
     for (int i = 0; i < SIZE; ++i) {
         for (int j = 0; j < SIZE; ++j) {
-            result(i, j) = this->value[i][j] + tmp(i, j);
+            result(i, j) = this->Matr[i][j] + tmp(i, j);
         }
     }
     return result;
@@ -151,7 +135,8 @@ Matrix Matrix::operator + (Matrix tmp) {
  |      in - strumien wyjsciowy,                                              |
  |      mat - macierz.                                                         |
  */
-std::istream &operator>>(std::istream &in, Matrix &mat) {
+template<typename TYP, int SIZE>
+std::istream &operator>>(std::istream &in, Matrix<TYP, SIZE> &mat) {
     for (int i = 0; i < SIZE; ++i) {
         for (int j = 0; j < SIZE; ++j) {
             in >> mat(i, j);
@@ -167,13 +152,92 @@ std::istream &operator>>(std::istream &in, Matrix &mat) {
  |      out - strumien wejsciowy,                                             |
  |      mat - macierz.                                                        |
  */
-std::ostream &operator<<(std::ostream &out, const Matrix &mat) {
+template<typename TYP, int SIZE>
+std::ostream &operator<<(std::ostream &out, const Matrix<TYP, SIZE> &mat) {
     for (int i = 0; i < SIZE; ++i) {
         for (int j = 0; j < SIZE; ++j) {
-            out << "| " << mat(i, j) << " | "; //warto ustalic szerokosc wyswietlania dokladnosci liczb
+            out << "| " << std::setw(16) << std::fixed << std::setprecision(10) <<  mat(i, j) << " | "; //warto ustalic szerokosc wyswietlania dokladnosci liczb
         }
         std::cout << std::endl;
     }
     return out;
 }
 
+template<typename TYP, int SIZE>
+Matrix<TYP, SIZE> Matrix<TYP, SIZE>::ObrKatX(double kat){
+    double rad = kat * M_PI / 180;
+    Matr[0][0] = 1;
+    Matr[0][1] = 0;
+    Matr[0][2] = 0;
+    Matr[1][0] = 0;
+    Matr[1][1] = cos(rad);
+    Matr[1][2] = -sin(rad);
+    Matr[2][0] = 0;
+    Matr[2][1] = sin(rad);
+    Matr[2][2] = cos(rad);
+    return Matr;
+}
+
+template<typename TYP, int SIZE>
+Matrix<TYP, SIZE> Matrix<TYP, SIZE>::ObrKatY(double kat){
+    double rad = kat * M_PI / 180;
+    Matr[0][0] = cos(rad);
+    Matr[0][1] = 0;
+    Matr[0][2] = sin(rad);
+    Matr[1][0] = 0;
+    Matr[1][1] = 1;
+    Matr[1][2] = 0;
+    Matr[2][0] = -sin(rad);
+    Matr[2][1] = 0;
+    Matr[2][2] = cos(rad);
+    return Matr;
+}
+
+template<typename TYP, int SIZE>
+Matrix<TYP, SIZE> Matrix<TYP, SIZE>::ObrKatZ(double kat){
+    double rad = kat * M_PI / 180;
+    Matr[0][0] = cos(rad);
+    Matr[0][1] = -sin(rad);
+    Matr[0][2] = 0;
+    Matr[1][0] = sin(rad);
+    Matr[1][1] = cos(rad);
+    Matr[1][2] = 0;
+    Matr[2][0] = 0;
+    Matr[2][1] = 0;
+    Matr[2][2] = 1;
+    return Matr;
+}
+
+template<typename TYP, int SIZE>
+void Matrix<TYP, SIZE>::Gauss(){
+    TYP r;
+    for (int i = 1; i <= SIZE - 1; i++){
+        if (Matr[i][i] == 0.0){
+            std::cout << "Mathematical Error!";
+            exit(0);
+        }
+        for (int j = i + 1; j <= SIZE; j++){
+            r = Matr[j][i]/Matr[i][i];
+            for (int k = 1; k <= SIZE + 1; k++){
+                Matr[j][k] = Matr[j][k] - r * Matr[i][k];
+            }
+        }
+    }
+}
+
+template<typename TYP, int SIZE>
+Matrix<TYP, SIZE> Matrix<TYP,SIZE>::operator*(Matrix<TYP, SIZE> tmp)
+{
+    Matrix<TYP, SIZE> result;
+    for (int i = 0; i < SIZE; i++)
+    {
+        for (int j = 0; j < SIZE; j++)
+        {
+            for (int k = 0; k < SIZE; k++)
+            {
+                result(i, j) += Matr[i][k] * tmp(k, j);
+            }
+        }
+    }
+    return result;
+}
